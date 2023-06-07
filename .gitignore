@@ -1,0 +1,7 @@
+*.log
+*.err
+*.out
+logs
+__pycache__
+.vscode
+*.pid
