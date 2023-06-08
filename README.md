@@ -1,9 +1,8 @@
 ### data pipeline for taiko testnet a3
 
-![](https://github.com/hatark/hosted_files/blob/504310f9ff09ce835ef59b5ec617bc1856c69d8e/taiko_a3_dashboard.png | width=100)
 
 <p align="center">
-    <img src="https://github.com/hatark/hosted_files/blob/504310f9ff09ce835ef59b5ec617bc1856c69d8e/taiko_a3_dashboard.png" width="100" />
+    <img src="https://github.com/hatark/hosted_files/blob/504310f9ff09ce835ef59b5ec617bc1856c69d8e/taiko_a3_dashboard.png"  />
 </p>
 
 
