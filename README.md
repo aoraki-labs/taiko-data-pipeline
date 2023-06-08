@@ -1,7 +1,7 @@
-### data pipeline for taiko testnet a3
+## data pipeline for taiko testnet a3
 
 <p align="center">
-    <img src="https://github.com/hatark/hosted_files/blob/504310f9ff09ce835ef59b5ec617bc1856c69d8e/taiko_a3_dashboard.png" width="400" />
+    <img src="https://raw.githubusercontent.com/hatark/hosted_files/main/taiko-icon-blk-md.svg" />
 </p>
 
 
