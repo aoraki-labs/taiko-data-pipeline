@@ -11,59 +11,62 @@
   },
   {
     "inputs": [],
-    "name": "L1_BLOCK_ID",
+    "name": "L1_BLOCK_ID_MISMATCH",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "L1_BLOCK_ID",
+    "name": "L1_BLOCK_ID_MISMATCH",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "L1_BLOCK_ID",
+    "name": "L1_BLOCK_ID_MISMATCH",
     "type": "error"
   },
   {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "expected",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "actual",
-        "type": "bytes32"
-      }
-    ],
-    "name": "L1_EVIDENCE_MISMATCH",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "expected",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "actual",
-        "type": "bytes32"
-      }
-    ],
+    "inputs": [],
     "name": "L1_EVIDENCE_MISMATCH",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "L1_FORK_CHOICE_NOT_FOUND",
+    "name": "L1_EVIDENCE_MISMATCH",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "L1_FORK_CHOICE_NOT_FOUND",
+    "name": "L1_INSUFFICIENT_TOKEN",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "L1_INSUFFICIENT_TOKEN",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "L1_INVALID_ASSIGNMENT",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "L1_INVALID_ASSIGNMENT",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "L1_INVALID_BLOCK_ID",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "L1_INVALID_BLOCK_ID",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "L1_INVALID_BLOCK_ID",
     "type": "error"
   },
   {
@@ -104,6 +107,16 @@
   {
     "inputs": [],
     "name": "L1_INVALID_METADATA",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "L1_INVALID_ORACLE_PROVER",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "L1_INVALID_ORACLE_PROVER",
     "type": "error"
   },
   {
@@ -118,37 +131,42 @@
   },
   {
     "inputs": [],
-    "name": "L1_INVALID_PROOF",
+    "name": "L1_INVALID_PROPOSER",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "L1_INVALID_PROOF_OVERWRITE",
+    "name": "L1_INVALID_PROPOSER",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "L1_INVALID_PROOF_OVERWRITE",
+    "name": "L1_INVALID_PROVER",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "L1_NOT_SPECIAL_PROVER",
+    "name": "L1_INVALID_PROVER",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "L1_NOT_SPECIAL_PROVER",
+    "name": "L1_INVALID_PROVER_SIG",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "L1_ORACLE_PROVER_DISABLED",
+    "name": "L1_INVALID_PROVER_SIG",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "L1_ORACLE_PROVER_DISABLED",
+    "name": "L1_NOT_PROVEABLE",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "L1_NOT_PROVEABLE",
     "type": "error"
   },
   {
@@ -163,32 +181,22 @@
   },
   {
     "inputs": [],
-    "name": "L1_SYSTEM_PROVER_DISABLED",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "L1_SYSTEM_PROVER_DISABLED",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "L1_SYSTEM_PROVER_PROHIBITED",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "L1_SYSTEM_PROVER_PROHIBITED",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "L1_TOO_MANY_BLOCKS",
     "type": "error"
   },
   {
     "inputs": [],
     "name": "L1_TOO_MANY_BLOCKS",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "L1_TRANSITION_NOT_FOUND",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "L1_TRANSITION_NOT_FOUND",
     "type": "error"
   },
   {
@@ -229,6 +237,16 @@
   {
     "inputs": [],
     "name": "L1_TX_LIST_RANGE",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "L1_UNEXPECTED_TRANSITION_ID",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "L1_UNEXPECTED_TRANSITION_ID",
     "type": "error"
   },
   {
@@ -261,7 +279,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "addressManager",
         "type": "address"
@@ -276,7 +294,19 @@
       {
         "indexed": true,
         "internalType": "uint256",
-        "name": "id",
+        "name": "blockId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "prover",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "reward",
         "type": "uint256"
       },
       {
@@ -328,12 +358,7 @@
           },
           {
             "internalType": "address",
-            "name": "beneficiary",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "treasury",
+            "name": "proposer",
             "type": "address"
           },
           {
@@ -363,12 +388,6 @@
         "internalType": "struct TaikoData.BlockMetadata",
         "name": "meta",
         "type": "tuple"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint64",
-        "name": "blockFee",
-        "type": "uint64"
       }
     ],
     "name": "BlockProposed",
@@ -380,7 +399,7 @@
       {
         "indexed": true,
         "internalType": "uint256",
-        "name": "id",
+        "name": "blockId",
         "type": "uint256"
       },
       {
@@ -406,12 +425,6 @@
         "internalType": "address",
         "name": "prover",
         "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint32",
-        "name": "parentGasUsed",
-        "type": "uint32"
       }
     ],
     "name": "BlockProven",
@@ -423,20 +436,20 @@
       {
         "indexed": true,
         "internalType": "uint256",
-        "name": "id",
+        "name": "blockId",
         "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "prover",
+        "type": "address"
       },
       {
         "indexed": false,
         "internalType": "bytes32",
         "name": "blockHash",
         "type": "bytes32"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint64",
-        "name": "reward",
-        "type": "uint64"
       }
     ],
     "name": "BlockVerified",
@@ -447,9 +460,84 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "blockId",
+        "type": "uint64"
+      },
+      {
+        "indexed": false,
         "internalType": "uint256",
-        "name": "srcHeight",
+        "name": "bond",
         "type": "uint256"
+      }
+    ],
+    "name": "BondReceived",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "blockId",
+        "type": "uint64"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "bond",
+        "type": "uint256"
+      }
+    ],
+    "name": "BondReturned",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "blockId",
+        "type": "uint64"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "bond",
+        "type": "uint256"
+      }
+    ],
+    "name": "BondRewarded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint64",
+        "name": "srcHeight",
+        "type": "uint64"
       },
       {
         "indexed": false,
@@ -530,37 +618,6 @@
     "type": "event"
   },
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint64",
-        "name": "proofTimeTarget",
-        "type": "uint64"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint64",
-        "name": "proofTimeIssued",
-        "type": "uint64"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint64",
-        "name": "blockFee",
-        "type": "uint64"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint16",
-        "name": "adjustmentQuotient",
-        "type": "uint16"
-      }
-    ],
-    "name": "ProofParamsChanged",
-    "type": "event"
-  },
-  {
     "inputs": [],
     "name": "addressManager",
     "outputs": [
@@ -574,7 +631,32 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "canDepositEthToL2",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
+      }
+    ],
     "name": "depositEtherToL2",
     "outputs": [],
     "stateMutability": "payable",
@@ -584,39 +666,71 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "blockId",
+        "name": "amount",
         "type": "uint256"
+      }
+    ],
+    "name": "depositTaikoToken",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint64",
+        "name": "blockId",
+        "type": "uint64"
       }
     ],
     "name": "getBlock",
     "outputs": [
       {
-        "internalType": "bytes32",
-        "name": "_metaHash",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "_proposer",
-        "type": "address"
-      },
-      {
-        "internalType": "uint64",
-        "name": "_proposedAt",
-        "type": "uint64"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getBlockFee",
-    "outputs": [
-      {
-        "internalType": "uint64",
-        "name": "",
-        "type": "uint64"
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "metaHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "prover",
+            "type": "address"
+          },
+          {
+            "internalType": "uint96",
+            "name": "proofBond",
+            "type": "uint96"
+          },
+          {
+            "internalType": "uint64",
+            "name": "blockId",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "proposedAt",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint32",
+            "name": "nextTransitionId",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "verifiedTransitionId",
+            "type": "uint32"
+          },
+          {
+            "internalType": "bytes32[7]",
+            "name": "__reserved",
+            "type": "bytes32[7]"
+          }
+        ],
+        "internalType": "struct TaikoData.Block",
+        "name": "blk",
+        "type": "tuple"
       }
     ],
     "stateMutability": "view",
@@ -634,54 +748,104 @@
             "type": "uint256"
           },
           {
-            "internalType": "uint256",
-            "name": "maxNumProposedBlocks",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "ringBufferSize",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "maxVerificationsPerTx",
-            "type": "uint256"
+            "internalType": "bool",
+            "name": "relaySignalRoot",
+            "type": "bool"
           },
           {
             "internalType": "uint64",
+            "name": "blockMaxProposals",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "blockRingBufferSize",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "blockMaxVerificationsPerTx",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint32",
             "name": "blockMaxGasLimit",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "blockFeeBaseGas",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint24",
+            "name": "blockMaxTxListBytes",
+            "type": "uint24"
+          },
+          {
+            "internalType": "uint256",
+            "name": "blockTxListExpiry",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "proposerRewardPerSecond",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "proposerRewardMax",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "proofRegularCooldown",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "proofOracleCooldown",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint16",
+            "name": "proofWindow",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint96",
+            "name": "proofBond",
+            "type": "uint96"
+          },
+          {
+            "internalType": "bool",
+            "name": "skipProverAssignmentVerificaiton",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "ethDepositRingBufferSize",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint64",
+            "name": "ethDepositMinCountPerBlock",
             "type": "uint64"
           },
           {
             "internalType": "uint64",
-            "name": "maxTransactionsPerBlock",
+            "name": "ethDepositMaxCountPerBlock",
             "type": "uint64"
           },
           {
-            "internalType": "uint64",
-            "name": "maxBytesPerTxList",
-            "type": "uint64"
+            "internalType": "uint96",
+            "name": "ethDepositMinAmount",
+            "type": "uint96"
           },
           {
-            "internalType": "uint256",
-            "name": "txListCacheExpiry",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "proofCooldownPeriod",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "systemProofCooldownPeriod",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "realProofSkipSize",
-            "type": "uint256"
+            "internalType": "uint96",
+            "name": "ethDepositMaxAmount",
+            "type": "uint96"
           },
           {
             "internalType": "uint256",
@@ -692,31 +856,6 @@
             "internalType": "uint256",
             "name": "ethDepositMaxFee",
             "type": "uint256"
-          },
-          {
-            "internalType": "uint64",
-            "name": "minEthDepositsPerBlock",
-            "type": "uint64"
-          },
-          {
-            "internalType": "uint64",
-            "name": "maxEthDepositsPerBlock",
-            "type": "uint64"
-          },
-          {
-            "internalType": "uint96",
-            "name": "maxEthDepositAmount",
-            "type": "uint96"
-          },
-          {
-            "internalType": "uint96",
-            "name": "minEthDepositAmount",
-            "type": "uint96"
-          },
-          {
-            "internalType": "bool",
-            "name": "relaySignalRoot",
-            "type": "bool"
           }
         ],
         "internalType": "struct TaikoData.Config",
@@ -730,9 +869,9 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
+        "internalType": "uint64",
         "name": "blockId",
-        "type": "uint256"
+        "type": "uint64"
       }
     ],
     "name": "getCrossChainBlockHash",
@@ -749,9 +888,9 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
+        "internalType": "uint64",
         "name": "blockId",
-        "type": "uint256"
+        "type": "uint64"
       }
     ],
     "name": "getCrossChainSignalRoot",
@@ -766,77 +905,11 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "blockId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "parentHash",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "uint32",
-        "name": "parentGasUsed",
-        "type": "uint32"
-      }
-    ],
-    "name": "getForkChoice",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "bytes32",
-            "name": "key",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "blockHash",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "signalRoot",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "uint64",
-            "name": "provenAt",
-            "type": "uint64"
-          },
-          {
-            "internalType": "address",
-            "name": "prover",
-            "type": "address"
-          },
-          {
-            "internalType": "uint32",
-            "name": "gasUsed",
-            "type": "uint32"
-          }
-        ],
-        "internalType": "struct TaikoData.ForkChoice",
-        "name": "",
-        "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "getStateVariables",
     "outputs": [
       {
         "components": [
-          {
-            "internalType": "uint64",
-            "name": "blockFee",
-            "type": "uint64"
-          },
           {
             "internalType": "uint64",
             "name": "genesisHeight",
@@ -898,6 +971,62 @@
   {
     "inputs": [
       {
+        "internalType": "uint64",
+        "name": "blockId",
+        "type": "uint64"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "parentHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getTransition",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "key",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "blockHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "signalRoot",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "prover",
+            "type": "address"
+          },
+          {
+            "internalType": "uint64",
+            "name": "provenAt",
+            "type": "uint64"
+          },
+          {
+            "internalType": "bytes32[6]",
+            "name": "__reserved",
+            "type": "bytes32[6]"
+          }
+        ],
+        "internalType": "struct TaikoData.Transition",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint16",
         "name": "id",
         "type": "uint16"
@@ -925,11 +1054,6 @@
         "internalType": "bytes32",
         "name": "_genesisBlockHash",
         "type": "bytes32"
-      },
-      {
-        "internalType": "uint64",
-        "name": "_initBlockFee",
-        "type": "uint64"
       }
     ],
     "name": "init",
@@ -955,6 +1079,11 @@
       {
         "internalType": "bytes",
         "name": "input",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "assignment",
         "type": "bytes"
       },
       {
@@ -1014,12 +1143,7 @@
           },
           {
             "internalType": "address",
-            "name": "beneficiary",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "treasury",
+            "name": "proposer",
             "type": "address"
           },
           {
@@ -1050,15 +1174,15 @@
         "type": "tuple"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
     "type": "function"
   },
   {
     "inputs": [
       {
-        "internalType": "uint256",
+        "internalType": "uint64",
         "name": "blockId",
-        "type": "uint256"
+        "type": "uint64"
       },
       {
         "internalType": "bytes",
@@ -1100,7 +1224,7 @@
     "outputs": [
       {
         "internalType": "address payable",
-        "name": "",
+        "name": "addr",
         "type": "address"
       }
     ],
@@ -1124,7 +1248,7 @@
     "outputs": [
       {
         "internalType": "address payable",
-        "name": "",
+        "name": "addr",
         "type": "address"
       }
     ],
@@ -1149,69 +1273,58 @@
     "name": "state",
     "outputs": [
       {
-        "internalType": "uint64",
-        "name": "genesisHeight",
-        "type": "uint64"
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "genesisHeight",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "genesisTimestamp",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "numEthDeposits",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "nextEthDepositToProcess",
+            "type": "uint64"
+          }
+        ],
+        "internalType": "struct TaikoData.SlotA",
+        "name": "slotA",
+        "type": "tuple"
       },
       {
-        "internalType": "uint64",
-        "name": "genesisTimestamp",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint16",
-        "name": "__reserved70",
-        "type": "uint16"
-      },
-      {
-        "internalType": "uint48",
-        "name": "__reserved71",
-        "type": "uint48"
-      },
-      {
-        "internalType": "uint64",
-        "name": "__reserved72",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint64",
-        "name": "__reserved80",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint64",
-        "name": "__reserved81",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint64",
-        "name": "numBlocks",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint64",
-        "name": "nextEthDepositToProcess",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint64",
-        "name": "blockFee",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint64",
-        "name": "__reserved90",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint64",
-        "name": "lastVerifiedBlockId",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint64",
-        "name": "__reserved91",
-        "type": "uint64"
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "numBlocks",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "nextEthDepositToProcess",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "lastVerifiedAt",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "lastVerifiedBlockId",
+            "type": "uint64"
+          }
+        ],
+        "internalType": "struct TaikoData.SlotB",
+        "name": "slotB",
+        "type": "tuple"
       }
     ],
     "stateMutability": "view",
@@ -1233,12 +1346,25 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
+        "internalType": "uint64",
         "name": "maxBlocks",
-        "type": "uint256"
+        "type": "uint64"
       }
     ],
     "name": "verifyBlocks",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "withdrawTaikoToken",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

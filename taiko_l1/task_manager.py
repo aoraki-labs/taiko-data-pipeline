@@ -4,15 +4,23 @@ import datetime
 from peewee import fn
 import sys
 
+# change this!!
 from .schema import L1Block
 from .block_scanner import BlockScanner
 
+import datetime
+
 class TaskManager:
     def __init__(self):
-        self.l1_rpc_endpoint = "https://sepolia.infura.io/v3/e0e0667e0e0667e0e0667"
+        self.now = datetime.datetime.now()
+        self.l1_rpc_endpoint = ""
+        if self.now.hour % 2 == 0:
+            self.l1_rpc_endpoint = "https://l1rpc.jolnir.taiko.xyz/"
+        else:
+            self.l1_rpc_endpoint = "https://l1rpc.jolnir.taiko.xyz/"
         self.w3 = Web3(Web3.HTTPProvider(self.l1_rpc_endpoint))
         self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
-        self.genesis_on_l1 = 3610800
+        self.genesis_on_l1 = 4272650
         self.scanner = BlockScanner()
 
     def get_latest_block(self):
@@ -40,13 +48,24 @@ class TaskManager:
         self.scanner.parse_l1_event_block_verified()
         self.scanner.parse_l1_event_cross_chain_synced()
         self.scanner.parse_l1_event_eth_deposited()
-        self.scanner.parse_taiko_token_event_mint()
-        self.scanner.parse_taiko_token_event_burn()
         self.scanner.parse_taiko_token_event_transfer()
         self.scanner.parse_bridge_l1_call_send_message()
         self.scanner.parse_bridge_l1_call_process_message()
-        self.scanner.parse_token_vault_l1_event_erc20_sent()
-        self.scanner.parse_token_vault_l1_event_erc20_received()
+        self.scanner.parse_erc20_vault_l1_event_bridged_token_deployed()
+        self.scanner.parse_erc20_vault_l1_event_token_sent()
+        self.scanner.parse_erc20_vault_l1_event_token_released()
+        self.scanner.parse_erc20_vault_l1_event_token_received()
+        self.scanner.parse_erc721_vault_l1_event_bridged_token_deployed()
+        self.scanner.parse_erc721_vault_l1_event_token_sent()
+        self.scanner.parse_erc721_vault_l1_event_token_released()
+        self.scanner.parse_erc721_vault_l1_event_token_received()
+        self.scanner.parse_erc1155_vault_l1_event_bridged_token_deployed()
+        self.scanner.parse_erc1155_vault_l1_event_token_sent()
+        self.scanner.parse_erc1155_vault_l1_event_token_released()
+        self.scanner.parse_erc1155_vault_l1_event_token_received()
+        self.scanner.parse_taiko_l1_event_bond_received()
+        self.scanner.parse_taiko_l1_event_bond_returned()
+        self.scanner.parse_taiko_l1_event_bond_rewarded()
         self.scanner.get_all_tokens_info()
         self.scanner.save_l1_call_propose_block()
         self.scanner.save_l1_call_prove_block()
@@ -58,13 +77,24 @@ class TaskManager:
         self.scanner.save_l1_event_block_verified()
         self.scanner.save_l1_event_cross_chain_synced()
         self.scanner.save_l1_event_eth_deposited()
-        self.scanner.save_taiko_token_event_mint()
-        self.scanner.save_taiko_token_event_burn()
         self.scanner.save_taiko_token_event_transfer()
         self.scanner.save_bridge_l1_call_send_message()
         self.scanner.save_bridge_l1_call_process_message()
-        self.scanner.save_token_vault_l1_event_erc20_sent()
-        self.scanner.save_token_vault_l1_event_erc20_received()
+        self.scanner.save_erc20_vault_l1_event_bridged_token_deployed()
+        self.scanner.save_erc20_vault_l1_event_token_sent()
+        self.scanner.save_erc20_vault_l1_event_token_released()
+        self.scanner.save_erc20_vault_l1_event_token_received()
+        self.scanner.save_erc721_vault_l1_event_bridged_token_deployed()
+        self.scanner.save_erc721_vault_l1_event_token_sent()
+        self.scanner.save_erc721_vault_l1_event_token_released()
+        self.scanner.save_erc721_vault_l1_event_token_received()
+        self.scanner.save_erc1155_vault_l1_event_bridged_token_deployed()
+        self.scanner.save_erc1155_vault_l1_event_token_sent()
+        self.scanner.save_erc1155_vault_l1_event_token_released()
+        self.scanner.save_erc1155_vault_l1_event_token_received()
+        self.scanner.save_taiko_l1_event_bond_received()
+        self.scanner.save_taiko_l1_event_bond_returned()
+        self.scanner.save_taiko_l1_event_bond_rewarded()
         self.scanner.save_all_tokens_info()
         self.scanner.save_txs()
         self.scanner.save_block()

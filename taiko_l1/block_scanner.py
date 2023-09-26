@@ -10,9 +10,8 @@ from web3.types import BlockData, TxData, TxReceipt, EventData
 from hexbytes import HexBytes
 from web3.contract.contract import Contract
 
+# change this
 from .schema import (
-    BridgeL1CallProcessMessage,
-    BridgeL1CallSendMessage,
     TaikoL1EventBlockVerified,
     TaikoL1EventCrossChainSynced,
     TaikoL1EventBlockProposed,
@@ -23,17 +22,28 @@ from .schema import (
     TaikoL1CallVerifyBlocks,
     TaikoL1CallDepositTaikoToken,
     TaikoL1CallWithdrawTaikoToken,
-    TaikoTokenL1EventMint,
-    TaikoTokenL1EventBurn,
     TaikoTokenL1EventTransfer,
-    # TaikoBridgeL1EventMessageStatusChanged,
-    # TaikoBridgeL1EventMessageSent,
+    BridgeL1CallProcessMessage,
+    BridgeL1CallSendMessage,
+    TaikoL1EventBondReceived,
+    TaikoL1EventBondReturned,
+    TaikoL1EventBondRewarded,
+    ERC20VaultL1EventBridgedTokenDeployed,
+    ERC20VaultL1EventTokenSent,
+    ERC20VaultL1EventTokenReleased,
+    ERC20VaultL1EventTokenReceived,
+    ERC721VaultL1EventBridgedTokenDeployed,
+    ERC721VaultL1EventTokenSent,
+    ERC721VaultL1EventTokenReleased,
+    ERC721VaultL1EventTokenReceived,
+    ERC1155VaultL1EventBridgedTokenDeployed,
+    ERC1155VaultL1EventTokenSent,
+    ERC1155VaultL1EventTokenReleased,
+    ERC1155VaultL1EventTokenReceived,
     L1Block,
     L1Transaction,
-    
-    TokenVaultL1EventERC20Received,
-    TokenVaultL1EventERC20Sent,
     ERC20Info,
+
     mysql_db
 )
 
@@ -42,37 +52,43 @@ warnings.filterwarnings("ignore")
 
 from pathlib import Path
 
-# import os
-# cwd = os.getcwd()
-# print(f"3333 {cwd}")
+import datetime
 
 # scan one block and save to db
 class BlockScanner():
     def __init__(self):
-        self.l1_rpc_endpoint = "https://sepolia.infura.io/v3/e0e066733e0e066733e0e0"
-        self.chain_id = 167005
+        self.cache_dir = "../tx_binaries/a5/l1"
+        self.now = datetime.datetime.now()
+        self.l1_rpc_endpoint = ""
+        if self.now.hour % 2 == 0:
+            self.l1_rpc_endpoint = "https://l1rpc.jolnir.taiko.xyz/"
+        else:
+            self.l1_rpc_endpoint = "https://l1rpc.jolnir.taiko.xyz/"
+        self.chain_id = 11155111
         self.w3 = Web3(Web3.HTTPProvider(self.l1_rpc_endpoint))
         self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
-        self.taiko_l1_address = "0x6375394335f34848b850114b66A49D6F47f2cdA8"
-        self.taiko_token_l1_address = "0xE52952B8063d0AE6Bd35E894866d8148976ce645"
-        # self.taiko_l1_address_manager = "0x6669f7B6DD295233C9F9482b5c7271E0cE5Aac4f"
-        self.taiko_l1_bridge = "0x7D992599E1B8b4508Ba6E2Ba97893b4C36C23A28"
-        # self.taiko_l1_signal_service = "0x07130410064Ab5C32486CC36904fb219ae97156F"
-        self.taiko_l1_token_vault = "0xD70506580B5F65e68ed0dbA7B4Ae507641C48197"
+        self.taiko_l1_address = "0x95fF8D3CE9dcB7455BEB7845143bEA84Fe5C4F6f"
+        self.taiko_token_l1_address = "0x75F94f04d2144cB6056CCd0CFF1771573d838974"
+        self.taiko_l1_bridge_address = "0x5293Bb897db0B64FFd11E0194984E8c5F1f06178"
+        self.taiko_l1_erc20_vault_address = "0x9f1a34A0e4f6C77C3648C4d9E922DA615C64D194"
+        self.taiko_l1_erc721_vault_address = "0x116649D245c08979E20FeDa89162A3D02fFeA88a"
+        self.taiko_l1_erc1155_vault_address = "0xF92938C48D078797E1Eb201D0fbB1Ac739F50B90"
         self.taiko_addresses = set([
             self.taiko_l1_address,
             self.taiko_token_l1_address,
-            # self.taiko_l1_address_manager,
-            self.taiko_l1_bridge,
-            # self.taiko_l1_signal_service,
-            self.taiko_l1_token_vault,
-            # for contract creation
-            None
+            self.taiko_l1_bridge_address,
+            self.taiko_l1_erc20_vault_address,
+            self.taiko_l1_erc721_vault_address,
+            self.taiko_l1_erc1155_vault_address,
+            None # for contract creation
         ])
         self.taiko_l1_contract: Contract
         self.taiko_token_l1_contract: Contract
         self.taiko_l1_bridge_contract: Contract
-        self.taiko_l1_token_vault_contract: Contract
+        self.taiko_l1_erc20_vault_contract: Contract
+        self.taiko_l1_erc721_vault_contract: Contract
+        self.taiko_l1_erc1155_vault_contract: Contract
+        # self.prover_pool_contract: Contract
         
         # raw data
         self.block_id: int
@@ -95,13 +111,24 @@ class BlockScanner():
         self.db_l1_event_block_proposed: list[dict]
         self.db_l1_event_block_proven: list[dict]
         self.db_l1_event_eth_deposited: list[dict]
-        self.db_taiko_token_event_mint: list[dict]
-        self.db_taiko_token_event_burn: list[dict]
+        self.db_l1_event_bond_received: list[dict]
+        self.db_l1_event_bond_returned: list[dict]
+        self.db_l1_event_bond_rewarded: list[dict]
         self.db_taiko_token_event_transfer: list[dict]
         self.db_bridge_l1_call_process_message: list[dict]
         self.db_bridge_l1_call_send_message: list[dict]
-        self.db_token_vault_l1_event_erc20_sent: list[dict]
-        self.db_token_vault_l1_event_erc20_received: list[dict]
+        self.db_erc20_vault_l1_event_bridged_token_deployed: list[dict]
+        self.db_erc20_vault_l1_event_token_sent: list[dict]
+        self.db_erc20_vault_l1_event_token_released: list[dict]
+        self.db_erc20_vault_l1_event_token_received: list[dict]
+        self.db_erc721_vault_l1_event_bridged_token_deployed: list[dict]
+        self.db_erc721_vault_l1_event_token_sent: list[dict]
+        self.db_erc721_vault_l1_event_token_released: list[dict]
+        self.db_erc721_vault_l1_event_token_received: list[dict]
+        self.db_erc1155_vault_l1_event_bridged_token_deployed: list[dict]
+        self.db_erc1155_vault_l1_event_token_sent: list[dict]
+        self.db_erc1155_vault_l1_event_token_released: list[dict]
+        self.db_erc1155_vault_l1_event_token_received: list[dict]
         self.db_erc20_info: list[dict]
 
         self._init_contract()
@@ -124,20 +151,36 @@ class BlockScanner():
         self.taiko_token_l1_contract = self.w3.eth.contract(taiko_token_l1_address, abi=l1_taiko_token_l1_abi)
 
         l1_taiko_l1_bridge_abi = []
-        taiko_l1_bridge_address = self.taiko_l1_bridge[2:]
+        taiko_l1_bridge_address = self.taiko_l1_bridge_address[2:]
         taiko_l1_bridge_address = bytes.fromhex(taiko_l1_bridge_address)
         taiko_l1_bridge_address = Address(taiko_l1_bridge_address)
         with open(Path(__file__).parent / "taiko_l1_bridge_abi.json") as f:
             l1_taiko_l1_bridge_abi = json.load(f)
         self.taiko_l1_bridge_contract = self.w3.eth.contract(taiko_l1_bridge_address, abi=l1_taiko_l1_bridge_abi)
 
-        l1_taiko_l1_token_vault_abi = []
-        taiko_l1_token_vault_address = self.taiko_l1_token_vault[2:]
-        taiko_l1_token_vault_address = bytes.fromhex(taiko_l1_token_vault_address)
-        taiko_l1_token_vault_address = Address(taiko_l1_token_vault_address)
-        with open(Path(__file__).parent / "taiko_l1_token_vault_abi.json") as f:
-            l1_taiko_l1_token_vault_abi = json.load(f)
-        self.taiko_l1_token_vault_contract = self.w3.eth.contract(taiko_l1_token_vault_address, abi=l1_taiko_l1_token_vault_abi)
+        l1_taiko_l1_erc20_vault_abi = []
+        taiko_l1_erc20_vault_address = self.taiko_l1_erc20_vault_address[2:]
+        taiko_l1_erc20_vault_address = bytes.fromhex(taiko_l1_erc20_vault_address)
+        taiko_l1_erc20_vault_address = Address(taiko_l1_erc20_vault_address)
+        with open(Path(__file__).parent / "taiko_l1_erc20_vault_abi.json") as f:
+            l1_taiko_l1_erc20_vault_abi = json.load(f)
+        self.taiko_l1_erc20_vault_contract = self.w3.eth.contract(taiko_l1_erc20_vault_address, abi=l1_taiko_l1_erc20_vault_abi)
+
+        l1_taiko_l1_erc721_vault_abi = []
+        taiko_l1_erc721_vault_address = self.taiko_l1_erc721_vault_address[2:]
+        taiko_l1_erc721_vault_address = bytes.fromhex(taiko_l1_erc721_vault_address)
+        taiko_l1_erc721_vault_address = Address(taiko_l1_erc721_vault_address)
+        with open(Path(__file__).parent / "taiko_l1_erc721_vault_abi.json") as f:
+            l1_taiko_l1_erc721_vault_abi = json.load(f)
+        self.taiko_l1_erc721_vault_contract = self.w3.eth.contract(taiko_l1_erc721_vault_address, abi=l1_taiko_l1_erc721_vault_abi)
+
+        l1_taiko_l1_erc1155_vault_abi = []
+        taiko_l1_erc1155_vault_address = self.taiko_l1_erc1155_vault_address[2:]
+        taiko_l1_erc1155_vault_address = bytes.fromhex(taiko_l1_erc1155_vault_address)
+        taiko_l1_erc1155_vault_address = Address(taiko_l1_erc1155_vault_address)
+        with open(Path(__file__).parent / "taiko_l1_erc1155_vault_abi.json") as f:
+            l1_taiko_l1_erc1155_vault_abi = json.load(f)
+        self.taiko_l1_erc1155_vault_contract = self.w3.eth.contract(taiko_l1_erc1155_vault_address, abi=l1_taiko_l1_erc1155_vault_abi)
 
 
     def set_block_id(self, block_id: int):
@@ -154,7 +197,7 @@ class BlockScanner():
         # for update of each table, do not delete, just check if num consistent
 
         tx_num = L1Block.select(L1Block.taiko_txs_num).where(L1Block.block_id == self.block_id).scalar()
-        tx_binary = Path(Path(__file__).parent / f"../tx_binaries/l1/{self.block_id}")
+        tx_binary = Path(Path(__file__).parent / f"{self.cache_dir}/{self.block_id}")
         if tx_num and tx_binary.is_file():
             l1_block = L1Block.get(L1Block.block_id == self.block_id)
             self.db_l1_block = {
@@ -163,7 +206,7 @@ class BlockScanner():
                 "timestamp": l1_block.timestamp,
                 "taiko_txs_num": l1_block.taiko_txs_num,
             }
-            with open(Path(__file__).parent / f"../tx_binaries/l1/{self.block_id}", 'rb') as f:
+            with open(Path(__file__).parent / f"{self.cache_dir}/{self.block_id}", 'rb') as f:
                 (self.tx_list, self.receipt_list) = pickle.load(f)
             if tx_num == len(self.tx_list) and tx_num == len(self.receipt_list):
                 return
@@ -180,7 +223,7 @@ class BlockScanner():
             tx_receipt = self.w3.eth.get_transaction_receipt(hash)
             self.receipt_list.append(tx_receipt)
         
-        with open(Path(__file__).parent / f"../tx_binaries/l1/{self.block_id}", 'wb') as f:
+        with open(Path(__file__).parent / f"{self.cache_dir}/{self.block_id}", 'wb') as f:
             pickle.dump((self.tx_list, self.receipt_list), f)
         
         self.db_l1_block = {
@@ -190,48 +233,6 @@ class BlockScanner():
             "timestamp": block.get("timestamp"),
             "taiko_txs_num": len(self.tx_list),
         }
-
-    # def fetch_data(self):
-    #     if L1Block.select().where(L1Block.block_id == self.block_id).count():
-    #         block_dump = L1Block.get(L1Block.block_id == self.block_id).block_dump
-    #         self.block = pickle.loads(block_dump)
-    #         self.db_l1_block_delete_save_flag = False
-    #         print("self.db_l1_block_delete_save_flag = False")
-    #     else:
-    #         self.block = self.w3.eth.get_block(self.block_id, full_transactions=True)
-    #         self.db_l1_block_delete_save_flag = True
-    #         print("self.db_l1_block_delete_save_flag = True")
-    #     txs = self.block.get("transactions")
-    #     txs = typing.cast(Sequence[TxData], txs)
-    #     # tx_list = list(txs)
-    #     self.tx_list = [tx for tx in txs if tx.get("to") in self.taiko_addresses]
-    #     self.receipt_list = []
-    #     if L1Transaction.select().where(L1Transaction.block_id == self.block_id).count() == len(self.tx_list):
-    #         l1_transactions = L1Transaction.select().where(L1Transaction.block_id == self.block_id).order_by(L1Transaction.transaction_index)
-    #         for l1_reansaction in l1_transactions:
-    #             self.receipt_list.append(pickle.loads(l1_reansaction.receipt_dump))
-    #         for tx, receipt in zip(self.tx_list, self.receipt_list):
-    #             assert tx.get("hash") == receipt.get("transactionHash")
-    #         self.db_l1_transaction_list_delete_save_flag = False
-    #         print("self.db_l1_transaction_list_delete_save_flag = False")
-    #     else:
-    #         for tx in self.tx_list:
-    #             hash = tx.get("hash")
-    #             hash = typing.cast(HexBytes, hash)
-    #             tx_receipt = self.w3.eth.get_transaction_receipt(hash)
-    #             self.receipt_list.append(tx_receipt)
-    #         self.db_l1_transaction_list_delete_save_flag = True
-    #         print("self.db_l1_transaction_list_delete_save_flag = True")
-            
-    # def parse_block(self):
-    #     self.db_l1_block = {
-    #         "block_id": self.block.get("number"),
-    #         "block_hash": self.block.get("hash").hex(),
-    #         "parent_hash": self.block.get("parentHash").hex(),
-    #         "timestamp": self.block.get("timestamp"),
-    #         "taiko_txs_num": len(self.tx_list),
-    #         # "block_dump": pickle.dumps(self.block)
-    #     }
     
     def save_block(self):
         count = L1Block.select().where(L1Block.block_id == self.block_id).count()
@@ -402,9 +403,10 @@ class BlockScanner():
                 self.db_l1_event_block_verified.append({
                     "block_id": event.get("blockNumber"),
                     "tx_hash": event.get("transactionHash").hex(),
-                    "verified_id": event.get("args").get("id"),
+                    "log_index": event.get("logIndex"),
+                    "verified_id": event.get("args").get("blockId"),
+                    "prover": event.get("args").get("prover"),
                     "block_hash": self.w3.to_hex(event.get("args").get("blockHash")),
-                    "reward": event.get("args").get("reward"),
                 })
     
     def save_l1_event_block_verified(self):
@@ -424,11 +426,12 @@ class BlockScanner():
                 self.db_l1_event_cross_chain_synced.append({
                     "block_id": event.get("blockNumber"),
                     "tx_hash": event.get("transactionHash").hex(),
+                    "log_index": event.get("logIndex"),
                     "src_height": event.get("args").get("srcHeight"),
                     "block_hash": self.w3.to_hex(event.get("args").get("blockHash")),
                     "signal_root": self.w3.to_hex(event.get("args").get("signalRoot")),
                 })
-    
+
     def save_l1_event_cross_chain_synced(self):
         count = TaikoL1EventCrossChainSynced.select().where(TaikoL1EventCrossChainSynced.block_id == self.block_id).count()
         if count != len(self.db_l1_event_cross_chain_synced):
@@ -445,8 +448,11 @@ class BlockScanner():
                 self.db_l1_event_block_proposed.append({
                     "block_id": event.get("blockNumber"),
                     "tx_hash": event.get("transactionHash").hex(),
+                    "log_index": event.get("logIndex"),
                     "proposer": tx_from,
-                    "proposed_id": event.get("args").get("id"),
+                    "proposed_id": event.get("args").get("blockId"),
+                    "prover": event.get("args").get("prover"),
+                    "reward": event.get("args").get("reward"),
                     "meta_id": event.get("args").get("meta").get("id"),
                     "meta_timestamp": event.get("args").get("meta").get("timestamp"),
                     "meta_l1_height": event.get("args").get("meta").get("l1Height"),
@@ -456,11 +462,8 @@ class BlockScanner():
                     "meta_tx_list_byte_start": event.get("args").get("meta").get("txListByteStart"),
                     "meta_tx_list_byte_end": event.get("args").get("meta").get("txListByteEnd"),
                     "meta_gas_limit": event.get("args").get("meta").get("gasLimit"),
-                    "meta_beneficiary": event.get("args").get("meta").get("beneficiary"),
-                    "meta_treasury": event.get("args").get("meta").get("treasury"),
-                    "block_fee": event.get("args").get("blockFee"),
+                    "meta_proposer": event.get("args").get("meta").get("proposer"),
                 })
-        # print(self.db_l1_event_block_proposed)
 
     def save_l1_event_block_proposed(self):
         count = TaikoL1EventBlockProposed.select().where(TaikoL1EventBlockProposed.block_id == self.block_id).count()
@@ -479,12 +482,12 @@ class BlockScanner():
                 self.db_l1_event_block_proven.append({
                     "block_id": event.get("blockNumber"),
                     "tx_hash": event.get("transactionHash").hex(),
-                    "proven_id": event.get("args").get("id"),
+                    "log_index": event.get("logIndex"),
+                    "proven_id": event.get("args").get("blockId"),
                     "parent_hash": self.w3.to_hex(event.get("args").get("parentHash")),
                     "block_hash": self.w3.to_hex(event.get("args").get("blockHash")),
                     "signal_root": self.w3.to_hex(event.get("args").get("signalRoot")),
                     "prover": event.get("args").get("prover"),
-                    "parent_gas_used": event.get("args").get("parentGasUsed"),
                 })
 
     def save_l1_event_block_proven(self):
@@ -504,8 +507,10 @@ class BlockScanner():
                 self.db_l1_event_eth_deposited.append({
                     "block_id": event.get("blockNumber"),
                     "tx_hash": event.get("transactionHash").hex(),
+                    "log_index": event.get("logIndex"),
                     "recipient": event.get("args").get("deposit").get("recipient"),
                     "amount": event.get("args").get("deposit").get("amount"),
+                    "id": event.get("args").get("deposit").get("id"),
                 })
 
     def save_l1_event_eth_deposited(self):
@@ -515,69 +520,74 @@ class BlockScanner():
             TaikoL1EventEthDeposited.insert_many(self.db_l1_event_eth_deposited).execute()
 
 
-    # def parse_l1_event_header_synced(self):
-    #     self.db_l1_event_header_synced = []
-    #     for receipt in self.receipt_list:
-    #         tx_to = receipt.get("to")
-    #         if tx_to != self.taiko_l1_address:
-    #             continue
-    #         events: Iterable[EventData] = self.taiko_l1_contract.events.HeaderSynced().process_receipt(txn_receipt=receipt)
-    #         for event in events:
-    #             self.db_l1_event_header_synced.append({
-    #                 "block_id": event.get("blockNumber"),
-    #                 "tx_hash": event.get("transactionHash").hex(),
-    #                 "src_height": event.get("args").get("srcHeight"),
-    #                 "src_hash": self.w3.to_hex(event.get("args").get("srcHash")),
-    #             })
-    
-    # def save_l1_event_header_synced(self):
-    #     count = TaikoL1EventHeaderSynced.select().where(TaikoL1EventHeaderSynced.block_id == self.block_id).count()
-    #     if count != len(self.db_l1_event_header_synced):
-    #         TaikoL1EventHeaderSynced.delete().where(TaikoL1EventHeaderSynced.block_id == self.block_id).execute()
-    #         TaikoL1EventHeaderSynced.insert_many(self.db_l1_event_header_synced).execute()
-
-
-    def parse_taiko_token_event_mint(self):
-        self.db_taiko_token_event_mint = []
-        for receipt in self.receipt_list:
-            tx_to = receipt.get("to")
-            if not (tx_to == self.taiko_l1_address or tx_to == None):
-                continue
-            events: Iterable[EventData] = self.taiko_token_l1_contract.events.Mint().process_receipt(txn_receipt=receipt)
-            for event in events:
-                self.db_taiko_token_event_mint.append({
-                    "block_id": event.get("blockNumber"),
-                    "tx_hash": event.get("transactionHash").hex(),
-                    "account": event.get("args").get("account"),
-                    "amount": event.get("args").get("amount"),
-                })
-
-    def save_taiko_token_event_mint(self):
-        count = TaikoTokenL1EventMint.select().where(TaikoTokenL1EventMint.block_id == self.block_id).count()
-        if count != len(self.db_taiko_token_event_mint):
-            TaikoTokenL1EventMint.delete().where(TaikoTokenL1EventMint.block_id == self.block_id).execute()
-            TaikoTokenL1EventMint.insert_many(self.db_taiko_token_event_mint).execute()
-
-    def parse_taiko_token_event_burn(self):
-        self.db_taiko_token_event_burn = []
+    def parse_taiko_l1_event_bond_received(self):
+        self.db_taiko_l1_event_bond_received = []
         for receipt in self.receipt_list:
             tx_to = receipt.get("to")
             if tx_to != self.taiko_l1_address:
                 continue
-            events: Iterable[EventData] = self.taiko_token_l1_contract.events.Burn().process_receipt(txn_receipt=receipt)
+            events: Iterable[EventData] = self.taiko_l1_contract.events.BondReceived().process_receipt(txn_receipt=receipt)
             for event in events:
-                self.db_taiko_token_event_burn.append({
+                self.db_taiko_l1_event_bond_received.append({
                     "block_id": event.get("blockNumber"),
                     "tx_hash": event.get("transactionHash").hex(),
-                    "account": event.get("args").get("account"),
-                    "amount": event.get("args").get("amount"),
+                    "log_index": event.get("logIndex"),
+                    "bond_from": event.get("args").get("from"),
+                    "bond_block_id": event.get("args").get("blockId"),
+                    "bond_amount": event.get("args").get("bond"),
                 })
 
-    def save_taiko_token_event_burn(self):
-        count = TaikoTokenL1EventBurn.select().where(TaikoTokenL1EventBurn.block_id == self.block_id).count()
-        if count != len(self.db_taiko_token_event_burn):
-            TaikoTokenL1EventBurn.delete().where(TaikoTokenL1EventBurn.block_id == self.block_id).execute()
-            TaikoTokenL1EventBurn.insert_many(self.db_taiko_token_event_burn).execute()
+    def save_taiko_l1_event_bond_received(self):
+        count = TaikoL1EventBondReceived.select().where(TaikoL1EventBondReceived.block_id == self.block_id).count()
+        if count != len(self.db_taiko_l1_event_bond_received):
+            TaikoL1EventBondReceived.delete().where(TaikoL1EventBondReceived.block_id == self.block_id).execute()
+            TaikoL1EventBondReceived.insert_many(self.db_taiko_l1_event_bond_received).execute()
+
+    def parse_taiko_l1_event_bond_returned(self):
+        self.db_taiko_l1_event_bond_returned = []
+        for receipt in self.receipt_list:
+            tx_to = receipt.get("to")
+            if tx_to != self.taiko_l1_address:
+                continue
+            events: Iterable[EventData] = self.taiko_l1_contract.events.BondReturned().process_receipt(txn_receipt=receipt)
+            for event in events:
+                self.db_taiko_l1_event_bond_returned.append({
+                    "block_id": event.get("blockNumber"),
+                    "tx_hash": event.get("transactionHash").hex(),
+                    "log_index": event.get("logIndex"),
+                    "bond_to": event.get("args").get("to"),
+                    "bond_block_id": event.get("args").get("blockId"),
+                    "bond_amount": event.get("args").get("bond"),
+                })
+
+    def save_taiko_l1_event_bond_returned(self):
+        count = TaikoL1EventBondReturned.select().where(TaikoL1EventBondReturned.block_id == self.block_id).count()
+        if count != len(self.db_taiko_l1_event_bond_returned):
+            TaikoL1EventBondReturned.delete().where(TaikoL1EventBondReturned.block_id == self.block_id).execute()
+            TaikoL1EventBondReturned.insert_many(self.db_taiko_l1_event_bond_returned).execute()
+
+    def parse_taiko_l1_event_bond_rewarded(self):
+        self.db_taiko_l1_event_bond_rewarded = []
+        for receipt in self.receipt_list:
+            tx_to = receipt.get("to")
+            if tx_to != self.taiko_l1_address:
+                continue
+            events: Iterable[EventData] = self.taiko_l1_contract.events.BondRewarded().process_receipt(txn_receipt=receipt)
+            for event in events:
+                self.db_taiko_l1_event_bond_rewarded.append({
+                    "block_id": event.get("blockNumber"),
+                    "tx_hash": event.get("transactionHash").hex(),
+                    "log_index": event.get("logIndex"),
+                    "bond_to": event.get("args").get("to"),
+                    "bond_block_id": event.get("args").get("blockId"),
+                    "bond_amount": event.get("args").get("bond"),
+                })
+
+    def save_taiko_l1_event_bond_rewarded(self):
+        count = TaikoL1EventBondRewarded.select().where(TaikoL1EventBondRewarded.block_id == self.block_id).count()
+        if count != len(self.db_taiko_l1_event_bond_rewarded):
+            TaikoL1EventBondRewarded.delete().where(TaikoL1EventBondRewarded.block_id == self.block_id).execute()
+            TaikoL1EventBondRewarded.insert_many(self.db_taiko_l1_event_bond_rewarded).execute()
 
     def parse_taiko_token_event_transfer(self):
         self.db_taiko_token_event_transfer = []
@@ -592,6 +602,7 @@ class BlockScanner():
                 self.db_taiko_token_event_transfer.append({
                     "block_id": event.get("blockNumber"),
                     "tx_hash": event.get("transactionHash").hex(),
+                    "log_index": event.get("logIndex"),
                     "tx_from": event.get("args").get("from"),
                     "tx_to": event.get("args").get("to"),
                     "value": event.get("args").get("value"),
@@ -603,7 +614,6 @@ class BlockScanner():
             TaikoTokenL1EventTransfer.delete().where(TaikoTokenL1EventTransfer.block_id == self.block_id).execute()
             TaikoTokenL1EventTransfer.insert_many(self.db_taiko_token_event_transfer).execute()
 
-
     def parse_bridge_l1_call_process_message(self):
         self.db_bridge_l1_call_process_message = []
         for tx, receipt in zip(self.tx_list, self.receipt_list):
@@ -614,15 +624,14 @@ class BlockScanner():
                         "block_id": tx.get("blockNumber"),
                         "tx_hash": tx.get("hash").hex(),
                         "message_id": data["message"]["id"],
-                        "message_sender": data["message"]["sender"],
+                        "message_from": data["message"]["from"],
                         "message_src_chain_id": data["message"]["srcChainId"],
                         "message_dest_chain_id": data["message"]["destChainId"],
-                        "message_owner": data["message"]["owner"],
+                        "message_user": data["message"]["user"],
                         "message_to": data["message"]["to"],
-                        "message_refund_address": data["message"]["refundAddress"],
-                        "message_deposit_value": data["message"]["depositValue"],
-                        "message_call_value": data["message"]["callValue"],
-                        "message_processing_fee": data["message"]["processingFee"],
+                        "message_refund_to": data["message"]["refundTo"],
+                        "message_value": data["message"]["value"],
+                        "message_fee": data["message"]["fee"],
                         "message_gas_limit": data["message"]["gasLimit"],
                         "message_data": self.w3.to_hex(data["message"]["data"]),
                         "message_memo": data["message"]["memo"],
@@ -647,15 +656,14 @@ class BlockScanner():
                         "block_id": tx.get("blockNumber"),
                         "tx_hash": tx.get("hash").hex(),
                         "message_id": data["message"]["id"],
-                        "message_sender": data["message"]["sender"],
+                        "message_from": data["message"]["from"],
                         "message_src_chain_id": data["message"]["srcChainId"],
                         "message_dest_chain_id": data["message"]["destChainId"],
-                        "message_owner": data["message"]["owner"],
+                        "message_user": data["message"]["user"],
                         "message_to": data["message"]["to"],
-                        "message_refund_address": data["message"]["refundAddress"],
-                        "message_deposit_value": data["message"]["depositValue"],
-                        "message_call_value": data["message"]["callValue"],
-                        "message_processing_fee": data["message"]["processingFee"],
+                        "message_refund_to": data["message"]["refundTo"],
+                        "message_value": data["message"]["value"],
+                        "message_fee": data["message"]["fee"],
                         "message_gas_limit": data["message"]["gasLimit"],
                         "message_data": self.w3.to_hex(data["message"]["data"]),
                         "message_memo": data["message"]["memo"],
@@ -670,19 +678,44 @@ class BlockScanner():
             BridgeL1CallSendMessage.delete().where(BridgeL1CallSendMessage.block_id == self.block_id).execute()
             BridgeL1CallSendMessage.insert_many(self.db_bridge_l1_call_send_message).execute()
 
-    def parse_token_vault_l1_event_erc20_sent(self):
-        self.db_token_vault_l1_event_erc20_sent = []
+    def parse_erc20_vault_l1_event_bridged_token_deployed(self):
+        self.db_erc20_vault_l1_event_bridged_token_deployed = []
         for receipt in self.receipt_list:
             tx_to = receipt.get("to")
-            # if tx_to != self.taiko_l1_bridge: # todo: check if its complete
-            #     continue
-            events: Iterable[EventData] = self.taiko_l1_token_vault_contract.events.ERC20Sent().process_receipt(txn_receipt=receipt)
+            events: Iterable[EventData] = self.taiko_l1_erc20_vault_contract.events.BridgedTokenDeployed().process_receipt(txn_receipt=receipt)
             for event in events:
-                if event.get("address") != self.taiko_l1_token_vault:
+                if event.get("address") != self.taiko_l1_erc20_vault_address:
                     continue
-                self.db_token_vault_l1_event_erc20_sent.append({
+                self.db_erc20_vault_l1_event_bridged_token_deployed.append({
                     "block_id": event.get("blockNumber"),
                     "tx_hash": event.get("transactionHash").hex(),
+                    "log_index": event.get("logIndex"),
+                    "src_chain_id": event.get("args").get("srcChainId"),
+                    "ctoken": event.get("args").get("ctoken"),
+                    "btoken": event.get("args").get("btoken"),
+                    "ctoken_symbol": event.get("args").get("ctokenSymbol"),
+                    "ctoken_name": event.get("args").get("ctokenName"),
+                    "ctoken_decimal": event.get("args").get("ctokenDecimal"),
+                })
+
+    def save_erc20_vault_l1_event_bridged_token_deployed(self):
+        count = ERC20VaultL1EventBridgedTokenDeployed.select().where(ERC20VaultL1EventBridgedTokenDeployed.block_id == self.block_id).count()
+        if count != len(self.db_erc20_vault_l1_event_bridged_token_deployed):
+            ERC20VaultL1EventBridgedTokenDeployed.delete().where(ERC20VaultL1EventBridgedTokenDeployed.block_id == self.block_id).execute()
+            ERC20VaultL1EventBridgedTokenDeployed.insert_many(self.db_erc20_vault_l1_event_bridged_token_deployed).execute()
+
+    def parse_erc20_vault_l1_event_token_sent(self):
+        self.db_erc20_vault_l1_event_token_sent = []
+        for receipt in self.receipt_list:
+            tx_to = receipt.get("to")
+            events: Iterable[EventData] = self.taiko_l1_erc20_vault_contract.events.TokenSent().process_receipt(txn_receipt=receipt)
+            for event in events:
+                if event.get("address") != self.taiko_l1_erc20_vault_address:
+                    continue
+                self.db_erc20_vault_l1_event_token_sent.append({
+                    "block_id": event.get("blockNumber"),
+                    "tx_hash": event.get("transactionHash").hex(),
+                    "log_index": event.get("logIndex"),
                     "msg_hash": self.w3.to_hex(event.get("args").get("msgHash")),
                     "tx_from": event.get("args").get("from"),
                     "tx_to": event.get("args").get("to"),
@@ -691,26 +724,48 @@ class BlockScanner():
                     "amount": event.get("args").get("amount"),
                 })
 
-    def save_token_vault_l1_event_erc20_sent(self):
-        count = TokenVaultL1EventERC20Sent.select().where(TokenVaultL1EventERC20Sent.block_id == self.block_id).count()
-        if count != len(self.db_token_vault_l1_event_erc20_sent):
-            TokenVaultL1EventERC20Sent.delete().where(TokenVaultL1EventERC20Sent.block_id == self.block_id).execute()
-            TokenVaultL1EventERC20Sent.insert_many(self.db_token_vault_l1_event_erc20_sent).execute()
+    def save_erc20_vault_l1_event_token_sent(self):
+        count = ERC20VaultL1EventTokenSent.select().where(ERC20VaultL1EventTokenSent.block_id == self.block_id).count()
+        if count != len(self.db_erc20_vault_l1_event_token_sent):
+            ERC20VaultL1EventTokenSent.delete().where(ERC20VaultL1EventTokenSent.block_id == self.block_id).execute()
+            ERC20VaultL1EventTokenSent.insert_many(self.db_erc20_vault_l1_event_token_sent).execute()
 
-
-    def parse_token_vault_l1_event_erc20_received(self):
-        self.db_token_vault_l1_event_erc20_received = []
+    def parse_erc20_vault_l1_event_token_released(self):
+        self.db_erc20_vault_l1_event_token_released = []
         for receipt in self.receipt_list:
             tx_to = receipt.get("to")
-            # if tx_to != self.taiko_l1_bridge: # todo: check if its complete
-            #     continue
-            events: Iterable[EventData] = self.taiko_l1_token_vault_contract.events.ERC20Received().process_receipt(txn_receipt=receipt)
+            events: Iterable[EventData] = self.taiko_l1_erc20_vault_contract.events.TokenReleased().process_receipt(txn_receipt=receipt)
             for event in events:
-                if event.get("address") != self.taiko_l1_token_vault:
+                if event.get("address") != self.taiko_l1_erc20_vault_address:
                     continue
-                self.db_token_vault_l1_event_erc20_received.append({
+                self.db_erc20_vault_l1_event_token_released.append({
                     "block_id": event.get("blockNumber"),
                     "tx_hash": event.get("transactionHash").hex(),
+                    "log_index": event.get("logIndex"),
+                    "msg_hash": self.w3.to_hex(event.get("args").get("msgHash")),
+                    "tx_from": event.get("args").get("from"),
+                    "token": event.get("args").get("token"),
+                    "amount": event.get("args").get("amount"),
+                })
+
+    def save_erc20_vault_l1_event_token_released(self):
+        count = ERC20VaultL1EventTokenReleased.select().where(ERC20VaultL1EventTokenReleased.block_id == self.block_id).count()
+        if count != len(self.db_erc20_vault_l1_event_token_released):
+            ERC20VaultL1EventTokenReleased.delete().where(ERC20VaultL1EventTokenReleased.block_id == self.block_id).execute()
+            ERC20VaultL1EventTokenReleased.insert_many(self.db_erc20_vault_l1_event_token_released).execute()
+
+    def parse_erc20_vault_l1_event_token_received(self):
+        self.db_erc20_vault_l1_event_token_received = []
+        for receipt in self.receipt_list:
+            tx_to = receipt.get("to")
+            events: Iterable[EventData] = self.taiko_l1_erc20_vault_contract.events.TokenReceived().process_receipt(txn_receipt=receipt)
+            for event in events:
+                if event.get("address") != self.taiko_l1_erc20_vault_address:
+                    continue
+                self.db_erc20_vault_l1_event_token_received.append({
+                    "block_id": event.get("blockNumber"),
+                    "tx_hash": event.get("transactionHash").hex(),
+                    "log_index": event.get("logIndex"),
                     "msg_hash": self.w3.to_hex(event.get("args").get("msgHash")),
                     "tx_from": event.get("args").get("from"),
                     "tx_to": event.get("args").get("to"),
@@ -719,20 +774,260 @@ class BlockScanner():
                     "amount": event.get("args").get("amount"),
                 })
 
-    def save_token_vault_l1_event_erc20_received(self):
-        count = TokenVaultL1EventERC20Received.select().where(TokenVaultL1EventERC20Received.block_id == self.block_id).count()
-        if count != len(self.db_token_vault_l1_event_erc20_received):
-            TokenVaultL1EventERC20Received.delete().where(TokenVaultL1EventERC20Received.block_id == self.block_id).execute()
-            TokenVaultL1EventERC20Received.insert_many(self.db_token_vault_l1_event_erc20_received).execute()
+    def save_erc20_vault_l1_event_token_received(self):
+        count = ERC20VaultL1EventTokenReceived.select().where(ERC20VaultL1EventTokenReceived.block_id == self.block_id).count()
+        if count != len(self.db_erc20_vault_l1_event_token_received):
+            ERC20VaultL1EventTokenReceived.delete().where(ERC20VaultL1EventTokenReceived.block_id == self.block_id).execute()
+            ERC20VaultL1EventTokenReceived.insert_many(self.db_erc20_vault_l1_event_token_received).execute()
+
+    def parse_erc721_vault_l1_event_bridged_token_deployed(self):
+        self.db_erc721_vault_l1_event_bridged_token_deployed = []
+        for receipt in self.receipt_list:
+            tx_to = receipt.get("to")
+            events: Iterable[EventData] = self.taiko_l1_erc721_vault_contract.events.BridgedTokenDeployed().process_receipt(txn_receipt=receipt)
+            for event in events:
+                if event.get("address") != self.taiko_l1_erc721_vault_address:
+                    continue
+                self.db_erc721_vault_l1_event_bridged_token_deployed.append({
+                    "block_id": event.get("blockNumber"),
+                    "tx_hash": event.get("transactionHash").hex(),
+                    "log_index": event.get("logIndex"),
+                    "src_chain_id": event.get("args").get("srcChainId"),
+                    "ctoken": event.get("args").get("ctoken"),
+                    "btoken": event.get("args").get("btoken"),
+                    "ctoken_symbol": event.get("args").get("ctokenSymbol"),
+                    "ctoken_name": event.get("args").get("ctokenName"),
+                })
+
+    def save_erc721_vault_l1_event_bridged_token_deployed(self):
+        count = ERC721VaultL1EventBridgedTokenDeployed.select().where(ERC721VaultL1EventBridgedTokenDeployed.block_id == self.block_id).count()
+        if count != len(self.db_erc721_vault_l1_event_bridged_token_deployed):
+            ERC721VaultL1EventBridgedTokenDeployed.delete().where(ERC721VaultL1EventBridgedTokenDeployed.block_id == self.block_id).execute()
+            ERC721VaultL1EventBridgedTokenDeployed.insert_many(self.db_erc721_vault_l1_event_bridged_token_deployed).execute()
+
+    def parse_erc721_vault_l1_event_token_sent(self):
+        self.db_erc721_vault_l1_event_token_sent = []
+        for receipt in self.receipt_list:
+            tx_to = receipt.get("to")
+            events: Iterable[EventData] = self.taiko_l1_erc721_vault_contract.events.TokenSent().process_receipt(txn_receipt=receipt)
+            for event in events:
+                if event.get("address") != self.taiko_l1_erc721_vault_address:
+                    continue
+                token_ids = event.get("args").get("tokenIds")
+                amounts = event.get("args").get("amounts")
+                if len(token_ids) != len(amounts):
+                    continue
+                for i in range(len(token_ids)):
+                    self.db_erc721_vault_l1_event_token_sent.append({
+                        "block_id": event.get("blockNumber"),
+                        "tx_hash": event.get("transactionHash").hex(),
+                        "log_index": event.get("logIndex"),
+                        "msg_hash": self.w3.to_hex(event.get("args").get("msgHash")),
+                        "tx_from": event.get("args").get("from"),
+                        "tx_to": event.get("args").get("to"),
+                        "dest_chain_id": event.get("args").get("destChainId"),
+                        "token": event.get("args").get("token"),
+                        "token_id": token_ids[i],
+                        "amount": amounts[i],
+                    })
+
+    def save_erc721_vault_l1_event_token_sent(self):
+        count = ERC721VaultL1EventTokenSent.select().where(ERC721VaultL1EventTokenSent.block_id == self.block_id).count()
+        if count != len(self.db_erc721_vault_l1_event_token_sent):
+            ERC721VaultL1EventTokenSent.delete().where(ERC721VaultL1EventTokenSent.block_id == self.block_id).execute()
+            ERC721VaultL1EventTokenSent.insert_many(self.db_erc721_vault_l1_event_token_sent).execute()
+
+    def parse_erc721_vault_l1_event_token_released(self):
+        self.db_erc721_vault_l1_event_token_released = []
+        for receipt in self.receipt_list:
+            tx_to = receipt.get("to")
+            events: Iterable[EventData] = self.taiko_l1_erc721_vault_contract.events.TokenReleased().process_receipt(txn_receipt=receipt)
+            for event in events:
+                if event.get("address") != self.taiko_l1_erc721_vault_address:
+                    continue
+                token_ids = event.get("args").get("tokenIds")
+                amounts = event.get("args").get("amounts")
+                if len(token_ids) != len(amounts):
+                    continue
+                for i in range(len(token_ids)):
+                    self.db_erc721_vault_l1_event_token_released.append({
+                        "block_id": event.get("blockNumber"),
+                        "tx_hash": event.get("transactionHash").hex(),
+                        "log_index": event.get("logIndex"),
+                        "msg_hash": self.w3.to_hex(event.get("args").get("msgHash")),
+                        "tx_from": event.get("args").get("from"),
+                        "token": event.get("args").get("token"),
+                        "token_id": token_ids[i],
+                        "amount": amounts[i],
+                    })
+
+    def save_erc721_vault_l1_event_token_released(self):
+        count = ERC721VaultL1EventTokenReleased.select().where(ERC721VaultL1EventTokenReleased.block_id == self.block_id).count()
+        if count != len(self.db_erc721_vault_l1_event_token_released):
+            ERC721VaultL1EventTokenReleased.delete().where(ERC721VaultL1EventTokenReleased.block_id == self.block_id).execute()
+            ERC721VaultL1EventTokenReleased.insert_many(self.db_erc721_vault_l1_event_token_released).execute()
+
+    def parse_erc721_vault_l1_event_token_received(self):
+        self.db_erc721_vault_l1_event_token_received = []
+        for receipt in self.receipt_list:
+            tx_to = receipt.get("to")
+            events: Iterable[EventData] = self.taiko_l1_erc721_vault_contract.events.TokenReceived().process_receipt(txn_receipt=receipt)
+            for event in events:
+                if event.get("address") != self.taiko_l1_erc721_vault_address:
+                    continue
+                token_ids = event.get("args").get("tokenIds")
+                amounts = event.get("args").get("amounts")
+                if len(token_ids) != len(amounts):
+                    continue
+                for i in range(len(token_ids)):
+                    self.db_erc721_vault_l1_event_token_received.append({
+                        "block_id": event.get("blockNumber"),
+                        "tx_hash": event.get("transactionHash").hex(),
+                        "log_index": event.get("logIndex"),
+                        "msg_hash": self.w3.to_hex(event.get("args").get("msgHash")),
+                        "tx_from": event.get("args").get("from"),
+                        "tx_to": event.get("args").get("to"),
+                        "src_chain_id": event.get("args").get("srcChainId"),
+                        "token": event.get("args").get("token"),
+                        "token_id": token_ids[i],
+                        "amount": amounts[i],
+                    })
+
+    def save_erc721_vault_l1_event_token_received(self):
+        count = ERC721VaultL1EventTokenReceived.select().where(ERC721VaultL1EventTokenReceived.block_id == self.block_id).count()
+        if count != len(self.db_erc721_vault_l1_event_token_received):
+            ERC721VaultL1EventTokenReceived.delete().where(ERC721VaultL1EventTokenReceived.block_id == self.block_id).execute()
+            ERC721VaultL1EventTokenReceived.insert_many(self.db_erc721_vault_l1_event_token_received).execute()
+
+    def parse_erc1155_vault_l1_event_bridged_token_deployed(self):
+        self.db_erc1155_vault_l1_event_bridged_token_deployed = []
+        for receipt in self.receipt_list:
+            tx_to = receipt.get("to")
+            events: Iterable[EventData] = self.taiko_l1_erc1155_vault_contract.events.BridgedTokenDeployed().process_receipt(txn_receipt=receipt)
+            for event in events:
+                if event.get("address") != self.taiko_l1_erc1155_vault_address:
+                    continue
+                self.db_erc1155_vault_l1_event_bridged_token_deployed.append({
+                    "block_id": event.get("blockNumber"),
+                    "tx_hash": event.get("transactionHash").hex(),
+                    "log_index": event.get("logIndex"),
+                    "src_chain_id": event.get("args").get("srcChainId"),
+                    "ctoken": event.get("args").get("ctoken"),
+                    "btoken": event.get("args").get("btoken"),
+                    "ctoken_symbol": event.get("args").get("ctokenSymbol"),
+                    "ctoken_name": event.get("args").get("ctokenName"),
+                    "ctoken_decimal": event.get("args").get("ctokenDecimal"),
+                })
+
+    def save_erc1155_vault_l1_event_bridged_token_deployed(self):
+        count = ERC1155VaultL1EventBridgedTokenDeployed.select().where(ERC1155VaultL1EventBridgedTokenDeployed.block_id == self.block_id).count()
+        if count != len(self.db_erc1155_vault_l1_event_bridged_token_deployed):
+            ERC1155VaultL1EventBridgedTokenDeployed.delete().where(ERC1155VaultL1EventBridgedTokenDeployed.block_id == self.block_id).execute()
+            ERC1155VaultL1EventBridgedTokenDeployed.insert_many(self.db_erc1155_vault_l1_event_bridged_token_deployed).execute()
+
+    def parse_erc1155_vault_l1_event_token_sent(self):
+        self.db_erc1155_vault_l1_event_token_sent = []
+        for receipt in self.receipt_list:
+            tx_to = receipt.get("to")
+            events: Iterable[EventData] = self.taiko_l1_erc1155_vault_contract.events.TokenSent().process_receipt(txn_receipt=receipt)
+            for event in events:
+                if event.get("address") != self.taiko_l1_erc1155_vault_address:
+                    continue
+                token_ids = event.get("args").get("tokenIds")
+                amounts = event.get("args").get("amounts")
+                if len(token_ids) != len(amounts):
+                    continue
+                for i in range(len(token_ids)):
+                    self.db_erc1155_vault_l1_event_token_sent.append({
+                        "block_id": event.get("blockNumber"),
+                        "tx_hash": event.get("transactionHash").hex(),
+                        "log_index": event.get("logIndex"),
+                        "msg_hash": self.w3.to_hex(event.get("args").get("msgHash")),
+                        "tx_from": event.get("args").get("from"),
+                        "tx_to": event.get("args").get("to"),
+                        "dest_chain_id": event.get("args").get("destChainId"),
+                        "token": event.get("args").get("token"),
+                        "token_id": token_ids[i],
+                        "amount": amounts[i],
+                    })
+
+    def save_erc1155_vault_l1_event_token_sent(self):
+        count = ERC1155VaultL1EventTokenSent.select().where(ERC1155VaultL1EventTokenSent.block_id == self.block_id).count()
+        if count != len(self.db_erc1155_vault_l1_event_token_sent):
+            ERC1155VaultL1EventTokenSent.delete().where(ERC1155VaultL1EventTokenSent.block_id == self.block_id).execute()
+            ERC1155VaultL1EventTokenSent.insert_many(self.db_erc1155_vault_l1_event_token_sent).execute()
+
+    def parse_erc1155_vault_l1_event_token_released(self):
+        self.db_erc1155_vault_l1_event_token_released = []
+        for receipt in self.receipt_list:
+            tx_to = receipt.get("to")
+            events: Iterable[EventData] = self.taiko_l1_erc1155_vault_contract.events.TokenReleased().process_receipt(txn_receipt=receipt)
+            for event in events:
+                if event.get("address") != self.taiko_l1_erc1155_vault_address:
+                    continue
+                token_ids = event.get("args").get("tokenIds")
+                amounts = event.get("args").get("amounts")
+                if len(token_ids) != len(amounts):
+                    continue
+                for i in range(len(token_ids)):
+                    self.db_erc1155_vault_l1_event_token_released.append({
+                        "block_id": event.get("blockNumber"),
+                        "tx_hash": event.get("transactionHash").hex(),
+                        "log_index": event.get("logIndex"),
+                        "msg_hash": self.w3.to_hex(event.get("args").get("msgHash")),
+                        "tx_from": event.get("args").get("from"),
+                        "token": event.get("args").get("token"),
+                        "token_id": token_ids[i],
+                        "amount": amounts[i],
+                    })
+
+    def save_erc1155_vault_l1_event_token_released(self):
+        count = ERC1155VaultL1EventTokenReleased.select().where(ERC1155VaultL1EventTokenReleased.block_id == self.block_id).count()
+        if count != len(self.db_erc1155_vault_l1_event_token_released):
+            ERC1155VaultL1EventTokenReleased.delete().where(ERC1155VaultL1EventTokenReleased.block_id == self.block_id).execute()
+            ERC1155VaultL1EventTokenReleased.insert_many(self.db_erc1155_vault_l1_event_token_released).execute()
+
+    def parse_erc1155_vault_l1_event_token_received(self):
+        self.db_erc1155_vault_l1_event_token_received = []
+        for receipt in self.receipt_list:
+            tx_to = receipt.get("to")
+            events: Iterable[EventData] = self.taiko_l1_erc1155_vault_contract.events.TokenReceived().process_receipt(txn_receipt=receipt)
+            for event in events:
+                if event.get("address") != self.taiko_l1_erc1155_vault_address:
+                    continue
+                token_ids = event.get("args").get("tokenIds")
+                amounts = event.get("args").get("amounts")
+                if len(token_ids) != len(amounts):
+                    continue
+                for i in range(len(token_ids)):
+                    self.db_erc1155_vault_l1_event_token_received.append({
+                        "block_id": event.get("blockNumber"),
+                        "tx_hash": event.get("transactionHash").hex(),
+                        "log_index": event.get("logIndex"),
+                        "msg_hash": self.w3.to_hex(event.get("args").get("msgHash")),
+                        "tx_from": event.get("args").get("from"),
+                        "tx_to": event.get("args").get("to"),
+                        "src_chain_id": event.get("args").get("srcChainId"),
+                        "token": event.get("args").get("token"),
+                        "token_id": token_ids[i],
+                        "amount": amounts[i],
+                    })
+
+    def save_erc1155_vault_l1_event_token_received(self):
+        count = ERC1155VaultL1EventTokenReceived.select().where(ERC1155VaultL1EventTokenReceived.block_id == self.block_id).count()
+        if count != len(self.db_erc1155_vault_l1_event_token_received):
+            ERC1155VaultL1EventTokenReceived.delete().where(ERC1155VaultL1EventTokenReceived.block_id == self.block_id).execute()
+            ERC1155VaultL1EventTokenReceived.insert_many(self.db_erc1155_vault_l1_event_token_received).execute()
+
     
     def get_all_tokens_info(self):
         self.db_erc20_info = []
 
         result = mysql_db.execute_sql("""
             with token_raw as (
-                select token from token_vault_l1_event_erc20_received
+                select token from erc20_vault_l1_event_token_received
                 union
-                select token from token_vault_l1_event_erc20_sent
+                select token from erc20_vault_l1_event_token_sent
             )
 
             select tr.token
@@ -765,3 +1060,6 @@ class BlockScanner():
         if self.db_erc20_info:
             ERC20Info.insert_many(self.db_erc20_info).execute()
     
+    
+    ########
+    # Notice that we can add erc721 and erc1155 here later.

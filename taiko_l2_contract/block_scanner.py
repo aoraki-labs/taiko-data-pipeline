@@ -23,10 +23,10 @@ import requests
 # scan one block and save to db
 class BlockScanner():
     def __init__(self):
-        self.l2_rpc_endpoint = "https://rpc.test.taiko.xyz"
+        self.l2_rpc_endpoint = "https://rpc.jolnir.taiko.xyz/"
         self.w3 = Web3(Web3.HTTPProvider(self.l2_rpc_endpoint))
         self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
-        self.db_contract_info: list[dict]    
+        self.db_contract_info: list[dict]
 
     def get_all_contracts_info(self):
         self.db_contract_info = []
@@ -50,7 +50,8 @@ class BlockScanner():
             implementation_address = ""
             (status, contract_name, is_proxy) = self.get_contract_info(tup[0])
             if status == 0:
-                continue
+                contract_name = ""
+                is_proxy = False
             if is_proxy:
                 implementation_address = self.get_implementation_address(tup[0])
                 if implementation_address != "":
@@ -69,7 +70,8 @@ class BlockScanner():
             L2ContractInfo.insert_many(self.db_contract_info).execute()
     
     def get_contract_info(self, address: str):
-        x = requests.get('https://explorer.test.taiko.xyz/api?module=contract&action=getsourcecode&address={0}'.format(address))
+        x = requests.get('https://blockscoutapi.jolnir.taiko.xyz/api?module=contract&action=getsourcecode&address={0}'.format(address))
+        
         if x.status_code != 200:
             return (0, "", False)
         result_json = x.json()
@@ -81,7 +83,7 @@ class BlockScanner():
         implementation_address = ""
         # try get from abi
         proxy_abi = []
-        with open("taiko_l2_contract/proxy_abi.json") as f:
+        with open(Path(__file__).parent / "proxy_abi.json") as f:
             proxy_abi = json.load(f)
 
         address = self.w3.to_checksum_address(address)

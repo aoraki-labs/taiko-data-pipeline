@@ -36,15 +36,10 @@
     "type": "error"
   },
   {
-    "inputs": [],
-    "name": "TKO_MINT_DISALLOWED",
-    "type": "error"
-  },
-  {
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "addressManager",
         "type": "address"
@@ -76,25 +71,6 @@
       }
     ],
     "name": "Approval",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "Burn",
     "type": "event"
   },
   {
@@ -158,25 +134,6 @@
       }
     ],
     "name": "Initialized",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "Mint",
     "type": "event"
   },
   {
@@ -474,7 +431,7 @@
         "type": "uint8"
       }
     ],
-    "stateMutability": "pure",
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -864,7 +821,7 @@
     "outputs": [
       {
         "internalType": "address payable",
-        "name": "",
+        "name": "addr",
         "type": "address"
       }
     ],
@@ -888,7 +845,7 @@
     "outputs": [
       {
         "internalType": "address payable",
-        "name": "",
+        "name": "addr",
         "type": "address"
       }
     ],

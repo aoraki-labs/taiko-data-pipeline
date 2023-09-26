@@ -1,11 +1,6 @@
 [
   {
     "inputs": [],
-    "name": "B_CANNOT_RECEIVE",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "B_DENIED",
     "type": "error"
   },
@@ -21,16 +16,6 @@
   },
   {
     "inputs": [],
-    "name": "B_ETHER_RELEASED_ALREADY",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "B_ETHER_RELEASED_ALREADY",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "B_EV_DO_NOT_BURN",
     "type": "error"
   },
@@ -42,11 +27,6 @@
   {
     "inputs": [],
     "name": "B_EV_PARAM",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "B_FAILED_TRANSFER",
     "type": "error"
   },
   {
@@ -121,26 +101,21 @@
   },
   {
     "inputs": [],
+    "name": "B_MSG_RECALLED_ALREADY",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "B_MSG_RECALLED_ALREADY",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "B_NULL_APP_ADDR",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "B_OWNER_IS_NULL",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "B_OWNER_IS_NULL",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "B_OWNER_IS_NULL",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "B_SIGNAL_NOT_RECEIVED",
     "type": "error"
   },
@@ -161,7 +136,12 @@
   },
   {
     "inputs": [],
-    "name": "B_WRONG_CHAIN_ID",
+    "name": "B_USER_IS_NULL",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "B_USER_IS_NULL",
     "type": "error"
   },
   {
@@ -229,7 +209,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "addressManager",
         "type": "address"
@@ -261,31 +241,6 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "msgHash",
-        "type": "bytes32"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "EtherReleased",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
         "indexed": false,
         "internalType": "uint8",
         "name": "version",
@@ -293,6 +248,32 @@
       }
     ],
     "name": "Initialized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "msgHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "MessageRecalled",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "msgHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "MessageRecalled",
     "type": "event"
   },
   {
@@ -313,7 +294,7 @@
           },
           {
             "internalType": "address",
-            "name": "sender",
+            "name": "from",
             "type": "address"
           },
           {
@@ -328,7 +309,7 @@
           },
           {
             "internalType": "address",
-            "name": "owner",
+            "name": "user",
             "type": "address"
           },
           {
@@ -338,22 +319,98 @@
           },
           {
             "internalType": "address",
-            "name": "refundAddress",
+            "name": "refundTo",
             "type": "address"
           },
           {
             "internalType": "uint256",
-            "name": "depositValue",
+            "name": "value",
             "type": "uint256"
           },
           {
             "internalType": "uint256",
-            "name": "callValue",
+            "name": "fee",
             "type": "uint256"
           },
           {
             "internalType": "uint256",
-            "name": "processingFee",
+            "name": "gasLimit",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          },
+          {
+            "internalType": "string",
+            "name": "memo",
+            "type": "string"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct IBridge.Message",
+        "name": "message",
+        "type": "tuple"
+      }
+    ],
+    "name": "MessageSent",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "msgHash",
+        "type": "bytes32"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "id",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "from",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "srcChainId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "destChainId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "user",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "refundTo",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "fee",
             "type": "uint256"
           },
           {
@@ -411,6 +468,31 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "bytes32",
+        "name": "msgHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum LibBridgeStatus.MessageStatus",
+        "name": "status",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "transactor",
+        "type": "address"
+      }
+    ],
+    "name": "MessageStatusChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "address",
         "name": "previousOwner",
         "type": "address"
@@ -429,7 +511,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "sender",
         "type": "address"
@@ -470,7 +552,7 @@
           },
           {
             "internalType": "address",
-            "name": "sender",
+            "name": "from",
             "type": "address"
           },
           {
@@ -536,7 +618,7 @@
           },
           {
             "internalType": "address",
-            "name": "sender",
+            "name": "from",
             "type": "address"
           },
           {
@@ -551,7 +633,7 @@
           },
           {
             "internalType": "address",
-            "name": "owner",
+            "name": "user",
             "type": "address"
           },
           {
@@ -561,22 +643,17 @@
           },
           {
             "internalType": "address",
-            "name": "refundAddress",
+            "name": "refundTo",
             "type": "address"
           },
           {
             "internalType": "uint256",
-            "name": "depositValue",
+            "name": "value",
             "type": "uint256"
           },
           {
             "internalType": "uint256",
-            "name": "callValue",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "processingFee",
+            "name": "fee",
             "type": "uint256"
           },
           {
@@ -649,9 +726,19 @@
         "internalType": "bytes32",
         "name": "msgHash",
         "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "destChainId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes",
+        "name": "proof",
+        "type": "bytes"
       }
     ],
-    "name": "isEtherReleased",
+    "name": "isMessageFailed",
     "outputs": [
       {
         "internalType": "bool",
@@ -668,19 +755,9 @@
         "internalType": "bytes32",
         "name": "msgHash",
         "type": "bytes32"
-      },
-      {
-        "internalType": "uint256",
-        "name": "destChainId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bytes",
-        "name": "proof",
-        "type": "bytes"
       }
     ],
-    "name": "isMessageFailed",
+    "name": "isMessageRecalled",
     "outputs": [
       {
         "internalType": "bool",
@@ -763,7 +840,7 @@
           },
           {
             "internalType": "address",
-            "name": "sender",
+            "name": "from",
             "type": "address"
           },
           {
@@ -778,7 +855,7 @@
           },
           {
             "internalType": "address",
-            "name": "owner",
+            "name": "user",
             "type": "address"
           },
           {
@@ -788,22 +865,17 @@
           },
           {
             "internalType": "address",
-            "name": "refundAddress",
+            "name": "refundTo",
             "type": "address"
           },
           {
             "internalType": "uint256",
-            "name": "depositValue",
+            "name": "value",
             "type": "uint256"
           },
           {
             "internalType": "uint256",
-            "name": "callValue",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "processingFee",
+            "name": "fee",
             "type": "uint256"
           },
           {
@@ -848,7 +920,7 @@
           },
           {
             "internalType": "address",
-            "name": "sender",
+            "name": "from",
             "type": "address"
           },
           {
@@ -863,7 +935,7 @@
           },
           {
             "internalType": "address",
-            "name": "owner",
+            "name": "user",
             "type": "address"
           },
           {
@@ -873,22 +945,17 @@
           },
           {
             "internalType": "address",
-            "name": "refundAddress",
+            "name": "refundTo",
             "type": "address"
           },
           {
             "internalType": "uint256",
-            "name": "depositValue",
+            "name": "value",
             "type": "uint256"
           },
           {
             "internalType": "uint256",
-            "name": "callValue",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "processingFee",
+            "name": "fee",
             "type": "uint256"
           },
           {
@@ -917,7 +984,7 @@
         "type": "bytes"
       }
     ],
-    "name": "releaseEther",
+    "name": "recallMessage",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -951,7 +1018,7 @@
     "outputs": [
       {
         "internalType": "address payable",
-        "name": "",
+        "name": "addr",
         "type": "address"
       }
     ],
@@ -975,7 +1042,7 @@
     "outputs": [
       {
         "internalType": "address payable",
-        "name": "",
+        "name": "addr",
         "type": "address"
       }
     ],
@@ -993,7 +1060,7 @@
           },
           {
             "internalType": "address",
-            "name": "sender",
+            "name": "from",
             "type": "address"
           },
           {
@@ -1008,7 +1075,7 @@
           },
           {
             "internalType": "address",
-            "name": "owner",
+            "name": "user",
             "type": "address"
           },
           {
@@ -1018,22 +1085,17 @@
           },
           {
             "internalType": "address",
-            "name": "refundAddress",
+            "name": "refundTo",
             "type": "address"
           },
           {
             "internalType": "uint256",
-            "name": "depositValue",
+            "name": "value",
             "type": "uint256"
           },
           {
             "internalType": "uint256",
-            "name": "callValue",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "processingFee",
+            "name": "fee",
             "type": "uint256"
           },
           {
@@ -1078,7 +1140,7 @@
           },
           {
             "internalType": "address",
-            "name": "sender",
+            "name": "from",
             "type": "address"
           },
           {
@@ -1093,7 +1155,7 @@
           },
           {
             "internalType": "address",
-            "name": "owner",
+            "name": "user",
             "type": "address"
           },
           {
@@ -1103,22 +1165,17 @@
           },
           {
             "internalType": "address",
-            "name": "refundAddress",
+            "name": "refundTo",
             "type": "address"
           },
           {
             "internalType": "uint256",
-            "name": "depositValue",
+            "name": "value",
             "type": "uint256"
           },
           {
             "internalType": "uint256",
-            "name": "callValue",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "processingFee",
+            "name": "fee",
             "type": "uint256"
           },
           {
