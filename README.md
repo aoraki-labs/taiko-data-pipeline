@@ -1,4 +1,4 @@
-# data pipeline for taiko testnet a3
+# data pipeline for taiko testnet a5
 
 <p align="center">
     <img src="https://raw.githubusercontent.com/hatark/hosted_files/main/taiko-icon-blk-md.svg" />
